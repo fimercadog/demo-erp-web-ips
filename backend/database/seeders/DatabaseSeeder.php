@@ -115,6 +115,7 @@ class DatabaseSeeder extends Seeder
         $this->seedInvoicesAndAccounts($company, $clients, $products, $reception, $mainWarehouse);
         $this->seedAccountsPayable($company, $suppliers);
         $this->seedCashSessions($company, $reception);
+        $this->call(DentalSeeder::class);
     }
 
     // ---------------------------------------------------------------- usuarios

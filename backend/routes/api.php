@@ -11,6 +11,11 @@ use App\Http\Controllers\Api\AccountPayableController;
 use App\Http\Controllers\Api\AccountReceivableController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AuditLogController;
+use App\Http\Controllers\Api\DentalConsentController;
+use App\Http\Controllers\Api\DentalEvolutionController;
+use App\Http\Controllers\Api\OdontogramController;
+use App\Http\Controllers\Api\PublicDentalSchedulingController;
+use App\Http\Controllers\Api\TreatmentPlanController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\BrandController;
@@ -113,6 +118,11 @@ Route::prefix('public/appointments')->group(function (): void {
 Route::prefix('public/domiciliary')->group(function (): void {
     Route::get('/services', [PublicDomiciliarySchedulingController::class, 'services'])->middleware('throttle:catalog-read');
     Route::post('/book', [PublicDomiciliarySchedulingController::class, 'book'])->middleware('throttle:appointment-booking');
+});
+
+Route::prefix('public/dental')->group(function (): void {
+    Route::get('/services', [PublicDentalSchedulingController::class, 'services'])->middleware('throttle:catalog-read');
+    Route::post('/book', [PublicDentalSchedulingController::class, 'book'])->middleware('throttle:appointment-booking');
 });
 
 // Portal del dueño (S14): login sin password por enlace mágico + CRUD de sus
@@ -298,6 +308,17 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('/appointments/{id}/attended', [AppointmentController::class, 'markAttended'])->middleware('can:appointments.manage')->whereNumber('id');
     Route::post('/appointments/{id}/no-show', [AppointmentController::class, 'markNoShow'])->middleware('can:appointments.manage')->whereNumber('id');
     Route::post('/appointments/{id}/reschedule', [AppointmentController::class, 'reschedule'])->middleware('can:appointments.manage')->whereNumber('id');
+
+    // Odontología Vertical
+    Route::get('/odontograms/patient/{patientId}', [OdontogramController::class, 'showByPatient'])->whereNumber('patientId');
+    Route::post('/odontograms/{id}/tooth', [OdontogramController::class, 'saveTooth'])->whereNumber('id');
+    Route::apiResource('odontograms', OdontogramController::class);
+
+    Route::post('/treatment-plans/{id}/convert-to-invoice', [TreatmentPlanController::class, 'convertToInvoice'])->whereNumber('id');
+    Route::apiResource('treatment-plans', TreatmentPlanController::class);
+
+    Route::apiResource('dental-evolutions', DentalEvolutionController::class);
+    Route::apiResource('dental-consents', DentalConsentController::class);
 
     Route::apiResource('audit-logs', AuditLogController::class)->only(['index', 'show'])->middleware('can:audit.view');
     Route::get('/permissions', [RoleController::class, 'permissions'])->middleware('can:roles.manage');

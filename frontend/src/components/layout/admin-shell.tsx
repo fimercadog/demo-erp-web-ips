@@ -115,6 +115,16 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
+    label: "Odontología",
+    items: [
+      { href: "/app/odontologia/dashboard", label: "Dashboard Odontología", icon: Activity, permissions: ["medical_records.manage"] },
+      { href: "/app/odontologia/tratamientos", label: "Planes & Presupuestos", icon: ClipboardList, permissions: ["medical_records.manage"] },
+      { href: "/app/odontologia/evoluciones", label: "Evolución Dental", icon: FileText, permissions: ["medical_records.manage"] },
+      { href: "/app/odontologia/consentimientos", label: "Consentimientos Dentales", icon: FileCheck, permissions: ["medical_records.manage"] },
+      { href: "/app/odontologia/procedimientos", label: "Tarifas & Procedimientos", icon: ListChecks, permissions: ["services.manage"] },
+    ],
+  },
+  {
     label: "Asistencial",
     items: [
       { href: "/app/equipo", label: "Médicos & Especialistas", icon: UserCheck, permissions: ["users.manage"] },

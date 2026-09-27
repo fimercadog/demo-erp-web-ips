@@ -19,6 +19,25 @@ export function primeCsrfCookie() {
   return axios.get(`${sanctumOrigin}/sanctum/csrf-cookie`, { withCredentials: true });
 }
 
+export async function fetchApi<T = any>(endpoint: string, options?: { method?: string; body?: any }): Promise<T> {
+  const method = (options?.method || "GET").toLowerCase();
+  const url = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  let data = options?.body;
+  if (typeof data === "string") {
+    try {
+      data = JSON.parse(data);
+    } catch {
+      // keep string
+    }
+  }
+  const response = await api.request<T>({
+    url,
+    method,
+    data,
+  });
+  return response.data;
+}
+
 function readXsrfCookie(): string | null {
   const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
   return match ? decodeURIComponent(match[1]) : null;
