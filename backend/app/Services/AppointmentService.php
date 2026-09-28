@@ -15,7 +15,8 @@ use Illuminate\Support\Str;
 class AppointmentService
 {
     public function __construct(
-        private readonly SchedulingService $scheduling
+        private readonly SchedulingService $scheduling,
+        private readonly GoogleCalendarService $googleCalendarService
     ) {}
 
     public function checkAvailability(
@@ -110,6 +111,12 @@ class AppointmentService
                 'new_values' => $appointment->toArray(),
             ]);
 
+            try {
+                $this->googleCalendarService->syncAppointmentToGoogle($appointment);
+            } catch (\Throwable $e) {
+                // Non-blocking sync error
+            }
+
             return $appointment;
         });
     }
@@ -151,6 +158,12 @@ class AppointmentService
                 'old_values' => $oldValues,
                 'new_values' => $appointment->toArray(),
             ]);
+
+            try {
+                $this->googleCalendarService->syncAppointmentToGoogle($appointment);
+            } catch (\Throwable $e) {
+                // Non-blocking sync error
+            }
 
             return $appointment;
         });
@@ -251,6 +264,12 @@ class AppointmentService
             'old_values' => ['status' => $oldStatus],
             'new_values' => $appointment->toArray(),
         ]);
+
+        try {
+            $this->googleCalendarService->deleteGoogleEvent($appointment);
+        } catch (\Throwable $e) {
+            // Non-blocking sync error
+        }
 
         return $appointment;
     }

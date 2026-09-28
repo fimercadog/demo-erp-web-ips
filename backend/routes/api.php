@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\GoogleCalendarOAuthController;
+use App\Http\Controllers\Api\GoogleCalendarWebhookController;
 use App\Http\Controllers\Api\AccountingController;
 use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\AttendanceController;
@@ -83,6 +85,9 @@ Route::post('/auth/login', [AuthController::class, 'login'])->middleware('thrott
 Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,1');
 Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:6,1');
 
+// Webhook público de Google Calendar Push Notifications (Idempotente)
+Route::post('/webhooks/google-calendar', [GoogleCalendarWebhookController::class, 'handle']);
+
 // Formularios publicos del sitio de marketing (demo / contacto).
 Route::get('/public/company/info', [CompanyController::class, 'publicInfo'])->middleware('throttle:catalog-read');
 Route::post('/public/leads', [LeadController::class, 'store'])->middleware('throttle:5,1');
@@ -145,6 +150,12 @@ Route::middleware('auth:sanctum')->group(function (): void {
     // Sin permiso: cualquier usuario autenticado.
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+
+    // Integración Google Calendar
+    Route::get('/integrations/google-calendar/connect', [GoogleCalendarOAuthController::class, 'redirect']);
+    Route::get('/integrations/google-calendar/callback', [GoogleCalendarOAuthController::class, 'callback']);
+    Route::get('/integrations/google-calendar/status', [GoogleCalendarOAuthController::class, 'status']);
+    Route::delete('/integrations/google-calendar/disconnect', [GoogleCalendarOAuthController::class, 'disconnect']);
 
     // Cada recurso exige el permiso Spatie correspondiente (mismo mapa que el
     // menu del frontend). `can:` responde 403 si el usuario no lo tiene.

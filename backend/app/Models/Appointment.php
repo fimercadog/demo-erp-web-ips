@@ -37,6 +37,11 @@ class Appointment extends Model
         'neighborhood',
         'address_reference',
         'dispatch_status',
+        'google_calendar_id',
+        'google_event_id',
+        'sync_status',
+        'last_synced_at',
+        'sync_error',
     ];
 
     protected function casts(): array
@@ -48,6 +53,7 @@ class Appointment extends Model
             'price' => 'decimal:2',
             'reminder_sent' => 'boolean',
             'is_domiciliary' => 'boolean',
+            'last_synced_at' => 'datetime',
         ];
     }
 
