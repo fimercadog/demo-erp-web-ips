@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SyncGoogleCalendarAppointmentJob;
 use App\Models\Appointment;
 use App\Models\Company;
 use App\Models\GoogleCalendarIntegration;
@@ -13,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -248,5 +250,44 @@ class GoogleCalendarIntegrationTest extends TestCase
         ]);
 
         $unknownResponse->assertStatus(200);
+    }
+
+    /** @test */
+    public function native_laravel_job_processes_google_calendar_sync_asynchronously(): void
+    {
+        $nextMonday = Carbon::now()->next(Carbon::MONDAY)->setTime(8, 0, 0);
+        Carbon::setTestNow($nextMonday);
+
+        GoogleCalendarIntegration::create([
+            'company_id' => $this->companyA->id,
+            'user_id' => $this->userA->id,
+            'google_email' => 'carlos@gmail.com',
+            'access_token' => 'token_valid',
+            'expires_at' => now()->addHour(),
+            'sync_enabled' => true,
+        ]);
+
+        Http::fake([
+            'https://www.googleapis.com/calendar/v3/calendars/primary/events' => Http::response([
+                'id' => 'job_google_event_999',
+                'status' => 'confirmed',
+            ], 200),
+        ]);
+
+        $appointment = Appointment::create([
+            'company_id' => $this->companyA->id,
+            'service_id' => $this->serviceA->id,
+            'practitioner_id' => $this->userA->id,
+            'starts_at' => $nextMonday->copy()->setTime(15, 0),
+            'ends_at' => $nextMonday->copy()->setTime(15, 30),
+            'status' => 'scheduled',
+        ]);
+
+        // Process Job natively in Laravel
+        $job = new SyncGoogleCalendarAppointmentJob($appointment, 'sync');
+        $job->handle(app(GoogleCalendarService::class));
+
+        $this->assertEquals('job_google_event_999', $appointment->fresh()->google_event_id);
+        $this->assertEquals('synced', $appointment->fresh()->sync_status);
     }
 }
