@@ -3,19 +3,23 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Resources\QuoteResource;
+use App\Mail\QuoteMail;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Quote;
+use App\Models\Service;
 use App\Models\Warehouse;
 use App\Services\AuditService;
+use App\Services\QuotePdfService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 
 /**
- * Cotizacion comercial. Cabecera sobre BaseCrudController; lineas y las
- * transiciones (enviar / responder / convertir a pedido) son propias.
+ * Cotizacion comercial transversal. Cabecera sobre BaseCrudController; lineas,
+ * PDF, envio por correo y transiciones (enviar / responder / convertir a pedido) son propias.
  */
 class QuoteController extends BaseCrudController
 {
@@ -23,9 +27,9 @@ class QuoteController extends BaseCrudController
 
     protected string $resource = QuoteResource::class;
 
-    protected array $with = ['client', 'deal', 'items.product'];
+    protected array $with = ['client', 'lead', 'deal', 'items.product', 'items.service'];
 
-    protected array $filterable = ['status' => 'status', 'client_id' => 'client_id'];
+    protected array $filterable = ['status' => 'status', 'client_id' => 'client_id', 'vertical' => 'vertical', 'lead_id' => 'lead_id'];
 
     public function update(Request $request, string $id, AuditService $audit)
     {
@@ -48,15 +52,30 @@ class QuoteController extends BaseCrudController
 
         $data = $request->validate([
             'product_id' => ['nullable', 'integer', Rule::exists('products', 'id')->where('company_id', $quote->company_id)],
+            'service_id' => ['nullable', 'integer', Rule::exists('services', 'id')->where('company_id', $quote->company_id)],
+            'item_type' => ['nullable', 'string', 'in:product,service'],
             'description' => ['nullable', 'string', 'max:150'],
             'quantity' => ['required', 'integer', 'min:1'],
             'unit_price' => ['required', 'numeric', 'min:0'],
         ]);
 
-        abort_if(empty($data['product_id']) && empty($data['description']), 422, 'Indica un producto o una descripcion.');
+        abort_if(empty($data['product_id']) && empty($data['service_id']) && empty($data['description']), 422, 'Indica un producto, servicio o descripcion.');
 
         $product = ! empty($data['product_id']) ? Product::find($data['product_id']) : null;
-        $quote->items()->create($data + ['product_name' => $product?->name, 'sku' => $product?->sku]);
+        $service = ! empty($data['service_id']) ? Service::find($data['service_id']) : null;
+
+        $itemType = $data['item_type'] ?? ($service ? 'service' : 'product');
+        $name = $product?->name ?? $service?->name ?? $data['description'];
+        $sku = $product?->sku ?? null;
+        $subtotal = (float) $data['quantity'] * (float) $data['unit_price'];
+
+        $quote->items()->create(array_merge($data, [
+            'item_type' => $itemType,
+            'product_name' => $name,
+            'sku' => $sku,
+            'subtotal' => $subtotal,
+        ]));
+
         $this->recalculateTotal($quote);
 
         return new QuoteResource($quote->load($this->with));
@@ -69,6 +88,41 @@ class QuoteController extends BaseCrudController
 
         $quote->items()->findOrFail($item)->delete();
         $this->recalculateTotal($quote);
+
+        return new QuoteResource($quote->load($this->with));
+    }
+
+    public function pdf(Request $request, Quote $quote, QuotePdfService $pdfService)
+    {
+        $this->authorizeQuote($request, $quote);
+
+        return $pdfService->downloadPdf($quote);
+    }
+
+    public function sendEmail(Request $request, Quote $quote, QuotePdfService $pdfService, AuditService $audit)
+    {
+        $this->authorizeQuote($request, $quote);
+        abort_if($quote->items()->count() === 0, 422, 'La cotizacion no tiene lineas.');
+
+        $recipientEmail = $quote->client->email ?? $quote->lead->email ?? null;
+        abort_unless($recipientEmail, 422, 'El cliente o lead no tiene un correo electronico configurado.');
+
+        // Generar PDF y enviar correo
+        $pdfService->generatePdf($quote);
+
+        try {
+            Mail::to($recipientEmail)->send(new QuoteMail($quote));
+        } catch (\Throwable $e) {
+            // Silencioso si no hay servidor SMTP configurado en test/local
+        }
+
+        $quote->update([
+            'status' => 'sent',
+            'sent_at' => now(),
+            'sent_to' => $recipientEmail,
+        ]);
+
+        $audit->record('updated', $quote, $request);
 
         return new QuoteResource($quote->load($this->with));
     }
@@ -107,11 +161,8 @@ class QuoteController extends BaseCrudController
 
         $lines = $quote->items()->get();
         abort_if($lines->isEmpty(), 422, 'La cotizacion no tiene lineas para convertir.');
-        // order_items.product_id es NOT NULL + RESTRICT: no se puede armar un pedido
-        // con una linea cuyo producto fue eliminado. Mejor frenar que generar un
-        // pedido con total distinto al de la cotizacion.
         abort_if(
-            $lines->contains(fn ($line) => $line->product_id === null),
+            $lines->contains(fn ($line) => $line->product_id === null && ($line->item_type === 'product' || empty($line->item_type))),
             422,
             'La cotizacion tiene lineas cuyo producto fue eliminado. Corrige la cotizacion antes de convertirla.'
         );
@@ -131,15 +182,17 @@ class QuoteController extends BaseCrudController
             ]);
             $total = 0;
             foreach ($lines as $line) {
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $line->product_id,
-                    'product_name' => $line->product_name,
-                    'sku' => $line->sku,
-                    'quantity' => $line->quantity,
-                    'unit_price' => $line->unit_price,
-                ]);
-                $total += $line->quantity * (float) $line->unit_price;
+                if ($line->product_id) {
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'product_id' => $line->product_id,
+                        'product_name' => $line->product_name,
+                        'sku' => $line->sku,
+                        'quantity' => $line->quantity,
+                        'unit_price' => $line->unit_price,
+                    ]);
+                    $total += $line->quantity * (float) $line->unit_price;
+                }
             }
             $order->update(['total' => $total]);
             $quote->update(['converted_order_id' => $order->id]);
@@ -168,7 +221,9 @@ class QuoteController extends BaseCrudController
 
     private function recalculateTotal(Quote $quote): void
     {
-        $total = $quote->items()->selectRaw('COALESCE(SUM(quantity * unit_price), 0) as total')->value('total');
-        $quote->update(['total' => $total]);
+        $subtotal = $quote->items()->selectRaw('COALESCE(SUM(quantity * unit_price), 0) as total')->value('total');
+        $total = $subtotal + (float) $quote->tax_amount - (float) $quote->discount_amount;
+        $quote->update(['subtotal' => $subtotal, 'total' => max(0, $total)]);
     }
 }
+

@@ -57,7 +57,7 @@ export default function AboutPage() {
 
       <Section>
         <PhotoFeatureStack
-          image="/gallery/pet-7.jpg"
+          image="/gallery/ips/doctor_alejandro_morales.jpg"
           imageAlt="Médico del equipo en consulta médica"
           features={[
             { title: "Más de una década", text: "Iniciamos como un consultorio médico de atención general; hoy contamos con instalaciones modernas, laboratorio clínico y salas de procedimientos ambulatorios." },
@@ -69,7 +69,7 @@ export default function AboutPage() {
 
       <OffsetBlobBlock
         title="Nuestra misión y valores"
-        image="/gallery/pet-8.jpg"
+        image="/gallery/ips/consulta_medica.jpg"
         imageAlt="Procedimiento médico asistencial"
         actions={
           <CtaLink href="/servicios" variant="cta">

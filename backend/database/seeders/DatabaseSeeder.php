@@ -210,9 +210,23 @@ class DatabaseSeeder extends Seeder
     /** @return array{0: Collection<int,Product>, 1: Collection<int,Product>} */
     private function seedInventoryCatalog(Company $company): array
     {
-        $categories = collect(['Biológicos', 'Antiparasitarios', 'Farmacia', 'Alimento médico', 'Accesorios', 'Insumos médicos'])
-            ->mapWithKeys(fn ($name) => [$name => Category::firstOrCreate(['company_id' => $company->id, 'name' => $name], ['status' => 'active'])]);
-        $brands = collect(['Zoetis', 'MSD Salud', 'Virbac', 'Elanco', 'Royal Canin', "Hill's", 'Genérico'])
+        $categories = collect([
+            ['Biológicos', 'ips'],
+            ['Antiparasitarios', 'ips'],
+            ['Farmacia', 'ips'],
+            ['Alimento médico', 'ips'],
+            ['Accesorios', 'ips'],
+            ['Insumos médicos', 'ips'],
+            ['Dermocosmética', 'estetica'],
+            ['Higiene Oral', 'odontologia'],
+            ['Suplementación', 'sueroterapia'],
+            ['Veterinaria General', 'veterinaria'],
+        ])->mapWithKeys(fn ($d) => [$d[0] => Category::firstOrCreate(
+            ['company_id' => $company->id, 'name' => $d[0]],
+            ['status' => 'active', 'vertical' => $d[1], 'is_public' => true]
+        )]);
+
+        $brands = collect(['Zoetis', 'MSD Salud', 'Virbac', 'Elanco', 'Royal Canin', "Hill's", 'Genérico', 'ISDIN', 'Curaprox'])
             ->mapWithKeys(fn ($name) => [$name => Brand::firstOrCreate(['company_id' => $company->id, 'name' => $name], ['status' => 'active'])]);
         $units = collect([
             ['name' => 'Unidad', 'abbreviation' => 'un'],
@@ -223,43 +237,52 @@ class DatabaseSeeder extends Seeder
         ])->mapWithKeys(fn ($d) => [$d['name'] => Unit::firstOrCreate(['company_id' => $company->id, 'name' => $d['name']], $d + ['status' => 'active'])]);
 
         $rows = [
-            ['VAC-DHPPI', 'Vacuna polivalente (DHPPi)', 'Biológicos', 'Zoetis', 'Dosis', 22000, 45000, 15, false, 'Vacuna múltiple asistencial.'],
-            ['VAC-RABIA', 'Vacuna antirrábica', 'Biológicos', 'MSD Salud', 'Dosis', 12000, 30000, 20, false, 'Antirrábica obligatoria.'],
-            ['VAC-TRIPLE-F', 'Vacuna triple asistencial', 'Biológicos', 'MSD Salud', 'Dosis', 24000, 48000, 10, false, 'Inmunización asistencial.'],
-            ['VAC-TOS', 'Vacuna estacional', 'Biológicos', 'Zoetis', 'Dosis', 20000, 42000, 8, false, 'Vacuna de refuerzo estacional.'],
-            ['ANTI-INT', 'Desparasitante amplio espectro', 'Antiparasitarios', 'Virbac', 'Tableta', 3500, 9000, 40, false, 'Tratamiento antiparasitario.'],
-            ['ANTI-EXT', 'Antiparasitario oral', 'Antiparasitarios', 'Elanco', 'Tableta', 28000, 55000, 25, false, 'Protección mensual oral.'],
-            ['ANTI-PIPE', 'Solución tópica antiséptica', 'Antiparasitarios', 'Virbac', 'Unidad', 18000, 38000, 20, false, 'Aplicación tópica asistencial.'],
-            ['FARM-AMOXI', 'Amoxicilina 250 mg', 'Farmacia', 'Genérico', 'Tableta', 900, 2500, 60, false, 'Antibiótico betalactámico.'],
-            ['FARM-MELOX', 'Meloxicam 1,5 mg/ml suspensión', 'Farmacia', 'Genérico', 'Frasco', 22000, 45000, 10, false, 'Antiinflamatorio no esteroideo.'],
-            ['FARM-SUERO', 'Suero fisiológico 500 ml', 'Farmacia', 'Genérico', 'Frasco', 4500, 9000, 30, false, 'Solución salina 0,9% para fluidoterapia.'],
-            ['FARM-GABA', 'Gabapentina 100 mg', 'Farmacia', 'Genérico', 'Tableta', 1200, 3200, 40, false, 'Analgésico neuropático.'],
-            ['ALIM-GASTRO', 'Suplemento nutricional 2 kg', 'Alimento médico', 'Royal Canin', 'Bolsa', 78000, 128000, 8, true, 'Suplemento nutricional clínico.'],
-            ['ALIM-RENAL', 'Fórmula de soporte renal 2 kg', 'Alimento médico', "Hill's", 'Bolsa', 92000, 148000, 6, true, 'Dieta de soporte asistencial.'],
-            ['ALIM-RECOV', 'Fórmula de recuperación', 'Alimento médico', 'Royal Canin', 'Unidad', 9000, 16000, 24, true, 'Alta energía para pacientes convalecientes.'],
-            ['ACC-COLLAR', 'Inmovilizador asistencial talla M', 'Accesorios', 'Genérico', 'Unidad', 8000, 18000, 15, true, 'Protector post-procedimiento.'],
-            ['ACC-SHAMP', 'Solución dermo-limpiadora 250 ml', 'Accesorios', 'Virbac', 'Frasco', 19000, 36000, 20, true, 'Uso dermo-asistencial.'],
-            ['ACC-DENTAL', 'Kit de higiene oral', 'Accesorios', 'Genérico', 'Unidad', 12000, 24000, 18, true, 'Kit de higiene oral asistencial.'],
-            ['INS-JERINGA', 'Jeringa 3 ml con aguja', 'Insumos médicos', 'Genérico', 'Unidad', 400, 0, 200, false, 'Insumo de uso interno.'],
-            ['INS-GUANTE', 'Guantes de examen (caja x100)', 'Insumos médicos', 'Genérico', 'Unidad', 22000, 0, 20, false, 'Nitrilo sin polvo.'],
+            ['VAC-DHPPI', 'Vacuna polivalente (DHPPi)', 'Biológicos', 'Zoetis', 'Dosis', 22000, 45000, 15, false, 'Vacuna múltiple asistencial.', 'ips'],
+            ['VAC-RABIA', 'Vacuna antirrábica', 'Biológicos', 'MSD Salud', 'Dosis', 12000, 30000, 20, false, 'Antirrábica obligatoria.', 'ips'],
+            ['VAC-TRIPLE-F', 'Vacuna triple asistencial', 'Biológicos', 'MSD Salud', 'Dosis', 24000, 48000, 10, false, 'Inmunización asistencial.', 'ips'],
+            ['VAC-TOS', 'Vacuna estacional', 'Biológicos', 'Zoetis', 'Dosis', 20000, 42000, 8, false, 'Vacuna de refuerzo estacional.', 'ips'],
+            ['ANTI-INT', 'Desparasitante amplio espectro', 'Antiparasitarios', 'Virbac', 'Tableta', 3500, 9000, 40, false, 'Tratamiento antiparasitario.', 'ips'],
+            ['ANTI-EXT', 'Antiparasitario oral', 'Antiparasitarios', 'Elanco', 'Tableta', 28000, 55000, 25, false, 'Protección mensual oral.', 'ips'],
+            ['ANTI-PIPE', 'Solución tópica antiséptica', 'Antiparasitarios', 'Virbac', 'Unidad', 18000, 38000, 20, false, 'Aplicación tópica asistencial.', 'ips'],
+            ['FARM-AMOXI', 'Amoxicilina 250 mg', 'Farmacia', 'Genérico', 'Tableta', 900, 2500, 60, false, 'Antibiótico betalactámico.', 'ips'],
+            ['FARM-MELOX', 'Meloxicam 1,5 mg/ml suspensión', 'Farmacia', 'Genérico', 'Frasco', 22000, 45000, 10, false, 'Antiinflamatorio no esteroideo.', 'ips'],
+            ['FARM-SUERO', 'Suero fisiológico 500 ml', 'Farmacia', 'Genérico', 'Frasco', 4500, 9000, 30, false, 'Solución salina 0,9% para fluidoterapia.', 'ips'],
+            ['FARM-GABA', 'Gabapentina 100 mg', 'Farmacia', 'Genérico', 'Tableta', 1200, 3200, 40, false, 'Analgésico neuropático.', 'ips'],
+            ['ALIM-GASTRO', 'Suplemento nutricional 2 kg', 'Alimento médico', 'Royal Canin', 'Bolsa', 78000, 128000, 8, true, 'Suplemento nutricional clínico.', 'ips'],
+            ['ALIM-RENAL', 'Fórmula de soporte renal 2 kg', 'Alimento médico', "Hill's", 'Bolsa', 92000, 148000, 6, true, 'Dieta de soporte asistencial.', 'ips'],
+            ['ALIM-RECOV', 'Fórmula de recuperación', 'Alimento médico', 'Royal Canin', 'Unidad', 9000, 16000, 24, true, 'Alta energía para pacientes convalecientes.', 'ips'],
+            ['ACC-COLLAR', 'Inmovilizador asistencial talla M', 'Accesorios', 'Genérico', 'Unidad', 8000, 18000, 15, true, 'Protector post-procedimiento.', 'ips'],
+            ['ACC-SHAMP', 'Solución dermo-limpiadora 250 ml', 'Accesorios', 'Virbac', 'Frasco', 19000, 36000, 20, true, 'Uso dermo-asistencial.', 'ips'],
+            ['ACC-DENTAL', 'Kit de higiene oral', 'Accesorios', 'Genérico', 'Unidad', 12000, 24000, 18, true, 'Kit de higiene oral asistencial.', 'ips'],
+            ['INS-JERINGA', 'Jeringa 3 ml con aguja', 'Insumos médicos', 'Genérico', 'Unidad', 400, 0, 200, false, 'Insumo de uso interno.', 'ips'],
+            ['INS-GUANTE', 'Guantes de examen (caja x100)', 'Insumos médicos', 'Genérico', 'Unidad', 22000, 0, 20, false, 'Nitrilo sin polvo.', 'ips'],
+            // Productos Estética
+            ['EST-SERUM-C', 'Serum Vitamina C Antioxidante 30ml', 'Dermocosmética', 'ISDIN', 'Frasco', 65000, 145000, 10, true, 'Sérum concentrado con Vitamina C pura y ácido hialurónico.', 'estetica'],
+            ['EST-BLOQ-SOL', 'Fotoprotector Solar SPF 50+ 50ml', 'Dermocosmética', 'ISDIN', 'Frasco', 45000, 98000, 15, true, 'Fotoprotector ultraligero de fase acuosa.', 'estetica'],
+            // Productos Odontología
+            ['ODON-PASTA', 'Crema Dental Enzimática 75ml', 'Higiene Oral', 'Curaprox', 'Unidad', 18000, 42000, 20, true, 'Crema dental suave con enzimas naturales.', 'odontologia'],
+            ['ODON-CEPILLO', 'Cepillo Dental Ultrasuave 5460', 'Higiene Oral', 'Curaprox', 'Unidad', 12000, 28000, 30, true, 'Filamentos CUREN de alta calidad para encías sensibles.', 'odontologia'],
+            // Productos Sueroterapia
+            ['SUERO-KIT-IMM', 'Kit Infusión Inmunológica Oral 10 Ampollas', 'Suplementación', 'Genérico', 'Unidad', 55000, 120000, 10, true, 'Suplemento líquido liposomado rico en Zinc y Vitamina C.', 'sueroterapia'],
         ];
 
         $products = collect($rows)->map(function (array $r) use ($company, $categories, $brands, $units) {
-            [$sku, $name, $cat, $brand, $unit, $cost, $price, $reorder, $public, $desc] = $r;
+            [$sku, $name, $cat, $brand, $unit, $cost, $price, $reorder, $public, $desc, $vertical] = $r;
 
             return Product::firstOrCreate(
                 ['company_id' => $company->id, 'sku' => $sku],
                 [
                     'name' => $name,
                     'description' => $desc,
-                    'category_id' => $categories[$cat]->id,
-                    'brand_id' => $brands[$brand]->id,
+                    'category_id' => $categories[$cat]->id ?? null,
+                    'brand_id' => $brands[$brand]->id ?? null,
                     'unit_id' => $units[$unit]->id ?? $units['Unidad']->id,
                     'cost_price' => $cost,
                     'unit_price' => $price,
                     'reorder_level' => $reorder,
                     'status' => 'active',
                     'is_public' => $public,
+                    'vertical' => $vertical,
                 ],
             );
         });
@@ -309,22 +332,42 @@ class DatabaseSeeder extends Seeder
     private function seedServices(Company $company): array
     {
         return collect([
-            ['Consulta general', 'consulta', 30, 55000],
-            ['Consulta especializada', 'consulta', 45, 95000],
-            ['Consulta a domicilio', 'consulta', 60, 130000],
-            ['Vacunación asistencial', 'vacunacion', 15, 40000],
-            ['Desparasitación asistencial', 'vacunacion', 15, 28000],
-            ['Cirugía ambulatoria', 'cirugia', 120, 420000],
-            ['Procedimiento menor', 'cirugia', 90, 280000],
-            ['Lavado / Limpieza asistencial', 'cirugia', 75, 240000],
-            ['Curación / manejo de heridas', 'curacion', 20, 35000],
-            ['Observación asistencial (día)', 'hospitalizacion', null, 140000],
-            ['Toma de muestras / laboratorio', 'otro', 30, 45000],
-            ['Valoración asistencial integral', 'otro', 45, 180000],
+            ['Consulta general', 'consulta', 30, 55000, 'ips', true],
+            ['Consulta especializada', 'consulta', 45, 95000, 'ips', true],
+            ['Consulta a domicilio', 'consulta', 60, 130000, 'ips', true],
+            ['Vacunación asistencial', 'vacunacion', 15, 40000, 'ips', true],
+            ['Desparasitación asistencial', 'vacunacion', 15, 28000, 'ips', true],
+            ['Cirugía ambulatoria', 'cirugia', 120, 420000, 'ips', true],
+            ['Procedimiento menor', 'cirugia', 90, 280000, 'ips', true],
+            ['Lavado / Limpieza asistencial', 'cirugia', 75, 240000, 'ips', true],
+            ['Curación / manejo de heridas', 'curacion', 20, 35000, 'ips', true],
+            ['Observación asistencial (día)', 'hospitalizacion', null, 140000, 'ips', true],
+            ['Toma de muestras / laboratorio', 'otro', 30, 45000, 'ips', true],
+            ['Valoración asistencial integral', 'otro', 45, 180000, 'ips', true],
+            // Estética
+            ['Limpieza Facial Profunda', 'procedimiento', 60, 150000, 'estetica', true],
+            ['Armonización Facial con Ácido Hialurónico', 'procedimiento', 45, 450000, 'estetica', true],
+            ['Hidratación Labial & Perfilado', 'procedimiento', 45, 380000, 'estetica', true],
+            ['Peeling Químico Médico', 'procedimiento', 30, 220000, 'estetica', true],
+            // Veterinaria
+            ['Consulta Veterinaria Canina/Felina', 'consulta', 30, 60000, 'veterinaria', true],
+            ['Vacunación Séxtuple Canina', 'vacunacion', 20, 45000, 'veterinaria', true],
+            ['Profilaxis Dental Veterinaria', 'procedimiento', 60, 220000, 'veterinaria', true],
+            // Sueroterapia
+            ['Suero Multivitamínico e Inmunológico', 'sueroterapia', 60, 180000, 'sueroterapia', true],
+            ['Suero Detox & Antioxidante Hígado', 'sueroterapia', 60, 210000, 'sueroterapia', true],
+            ['Suero Energizante & Recuperación deportiva', 'sueroterapia', 60, 195000, 'sueroterapia', true],
         ])->mapWithKeys(fn ($d) => [
             $d[0] => Service::firstOrCreate(
                 ['company_id' => $company->id, 'name' => $d[0]],
-                ['type' => $d[1], 'estimated_duration_minutes' => $d[2], 'price' => $d[3], 'status' => 'active'],
+                [
+                    'type' => $d[1],
+                    'estimated_duration_minutes' => $d[2],
+                    'price' => $d[3],
+                    'vertical' => $d[4],
+                    'is_public' => $d[5],
+                    'status' => 'active',
+                ],
             ),
         ])->all();
     }

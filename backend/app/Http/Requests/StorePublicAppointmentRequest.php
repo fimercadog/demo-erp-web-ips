@@ -10,6 +10,7 @@ class StorePublicAppointmentRequest extends ApiFormRequest
             'name' => ['required', 'string', 'max:150'],
             'email' => ['required', 'email', 'max:150'],
             'phone' => ['nullable', 'string', 'max:50'],
+            'vertical' => ['nullable', 'string', 'max:50'],
             'pet_name' => ['nullable', 'string', 'max:120'],
             'reason' => ['nullable', 'string', 'max:255'],
             'preferred_date' => ['nullable', 'string', 'max:100'],

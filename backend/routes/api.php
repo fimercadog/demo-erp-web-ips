@@ -103,6 +103,8 @@ Route::prefix('public/catalog')->group(function (): void {
     Route::middleware('throttle:catalog-read')->group(function (): void {
         Route::get('/products', [PublicCatalogController::class, 'products']);
         Route::get('/products/{id}', [PublicCatalogController::class, 'product'])->whereNumber('id');
+        Route::get('/services', [PublicCatalogController::class, 'services']);
+        Route::get('/services/{id}', [PublicCatalogController::class, 'service'])->whereNumber('id');
         Route::get('/categories', [PublicCatalogController::class, 'categories']);
     });
     Route::post('/quote-requests', [PublicCatalogController::class, 'storeQuoteRequest'])->middleware('throttle:catalog-quote');
@@ -196,6 +198,8 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::apiResource('activities', ActivityController::class)->middleware('can:activities.manage');
 
     Route::apiResource('quotes', QuoteController::class)->middleware('can:deals.manage');
+    Route::get('/quotes/{quote}/pdf', [QuoteController::class, 'pdf'])->middleware('can:deals.manage');
+    Route::post('/quotes/{quote}/send-email', [QuoteController::class, 'sendEmail'])->middleware('can:deals.manage');
     Route::post('/quotes/{quote}/items', [QuoteController::class, 'addItem'])->middleware('can:deals.manage');
     Route::delete('/quotes/{quote}/items/{item}', [QuoteController::class, 'removeItem'])->middleware('can:deals.manage');
     Route::post('/quotes/{quote}/send', [QuoteController::class, 'send'])->middleware('can:deals.manage');
@@ -287,7 +291,8 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('/domiciliary-appointments/{id}/dispatch', [DomiciliaryAppointmentController::class, 'updateDispatch'])->middleware('can:appointments.manage');
     Route::post('/domiciliary-appointments/{id}/execute', [DomiciliaryAppointmentController::class, 'executeTherapy'])->middleware('can:appointments.manage');
 
-    // --- Clínica veterinaria ---
+    // --- Clínica veterinaria / Servicios ---
+    Route::post('/services/{id}/image', [ServiceController::class, 'image'])->middleware('can:services.manage')->whereNumber('id');
     Route::apiResource('services', ServiceController::class)->middleware('can:services.manage');
     Route::apiResource('species', SpeciesController::class)->middleware('can:patients.manage');
     Route::apiResource('breeds', BreedController::class)->middleware('can:patients.manage');

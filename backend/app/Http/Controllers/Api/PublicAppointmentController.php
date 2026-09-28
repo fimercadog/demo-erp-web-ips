@@ -51,6 +51,7 @@ class PublicAppointmentController extends Controller
         if (! $duplicate) {
             Lead::create([
                 'company_id' => $companyId,
+                'vertical' => $data['vertical'] ?? 'ips',
                 'email' => $data['email'],
                 'source' => 'appointment',
                 'name' => $data['name'],

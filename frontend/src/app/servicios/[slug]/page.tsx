@@ -13,13 +13,11 @@ import { TestimonialGrid } from "@/components/marketing/testimonial-card";
 import { WHATSAPP_URL } from "@/components/marketing/whatsapp-link";
 
 const SERVICE_PHOTO: Record<string, string> = {
-  "consulta-veterinaria": "/gallery/hero-bulldog-exam.jpg",
-  vacunacion: "/gallery/pet-4.jpg",
-  cirugia: "/gallery/pet-13.jpg",
-  "laboratorio-clinico": "/gallery/pet-12.jpg",
-  "peluqueria-grooming": "/gallery/pet-8.jpg",
-  nutricion: "/gallery/pet-4.jpg",
-  urgencias: "/gallery/pet-10.jpg",
+  "consulta-medica-general": "/gallery/ips/consulta_medica.jpg",
+  "pediatria-neonatologia": "/gallery/ips/consulta_medica.jpg",
+  "laboratorio-clinico": "/gallery/ips/laboratorio_clinico.jpg",
+  "urgencias-triage": "/gallery/ips/urgencias_prioritaria.jpg",
+  "cardiologia-ekg": "/gallery/ips/consulta_medica.jpg",
 };
 
 export function generateStaticParams() {
@@ -32,7 +30,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   if (!service) notFound();
 
   const iconSrc = SERVICE_ICON[service.slug];
-  const photo = SERVICE_PHOTO[service.slug] ?? "/gallery/paw-procedure.jpg";
+  const photo = SERVICE_PHOTO[service.slug] ?? "/gallery/ips/consulta_medica.jpg";
   const related = services.filter((s) => s.slug !== service.slug).slice(0, 3);
 
   return (

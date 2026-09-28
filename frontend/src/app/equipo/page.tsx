@@ -26,7 +26,7 @@ export default function EquipoPage() {
 
       <Section className="pt-0">
         <PhotoFeatureStack
-          image="/gallery/pet-13.jpg"
+          image="/gallery/ips/doctor_alejandro_morales.jpg"
           imageAlt="Médico especialista realizando una valoración en consulta"
           reverse
           features={[

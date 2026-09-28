@@ -37,6 +37,8 @@ class DentalSeeder extends Seeder
                 'price' => 120000,
                 'estimated_duration_minutes' => 45,
                 'type' => 'procedure',
+                'vertical' => 'odontologia',
+                'is_public' => true,
                 'status' => 'active',
             ],
             [
@@ -45,6 +47,8 @@ class DentalSeeder extends Seeder
                 'price' => 180000,
                 'estimated_duration_minutes' => 45,
                 'type' => 'procedure',
+                'vertical' => 'odontologia',
+                'is_public' => true,
                 'status' => 'active',
             ],
             [
@@ -53,6 +57,8 @@ class DentalSeeder extends Seeder
                 'price' => 450000,
                 'estimated_duration_minutes' => 60,
                 'type' => 'procedure',
+                'vertical' => 'odontologia',
+                'is_public' => true,
                 'status' => 'active',
             ],
             [
@@ -61,6 +67,8 @@ class DentalSeeder extends Seeder
                 'price' => 350000,
                 'estimated_duration_minutes' => 60,
                 'type' => 'procedure',
+                'vertical' => 'odontologia',
+                'is_public' => true,
                 'status' => 'active',
             ],
             [
@@ -69,6 +77,8 @@ class DentalSeeder extends Seeder
                 'price' => 1800000,
                 'estimated_duration_minutes' => 90,
                 'type' => 'procedure',
+                'vertical' => 'odontologia',
+                'is_public' => true,
                 'status' => 'active',
             ],
         ];

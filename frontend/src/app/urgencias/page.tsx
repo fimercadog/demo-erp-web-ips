@@ -69,7 +69,7 @@ export default function UrgenciasPage() {
 
       <Section className="bg-section-cream">
         <PhotoFeatureStack
-          image="/gallery/paw-procedure.jpg"
+          image="/gallery/ips/urgencias_prioritaria.jpg"
           imageAlt="Procedimiento médico de urgencia prioritaria"
           reverse
           features={[

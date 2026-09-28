@@ -8,12 +8,28 @@ export type PublicProduct = {
   description: string | null;
   image_url: string | null;
   unit_price: number;
+  compare_price?: number | null;
   category: string | null;
   brand: string | null;
   unit: string | null;
+  vertical?: string | null;
 };
 
-export type CatalogCategory = { id: number; name: string };
+export type PublicService = {
+  id: number;
+  name: string;
+  description: string | null;
+  type: string;
+  estimated_duration_minutes: number | null;
+  price: number;
+  compare_price?: number | null;
+  category: string | null;
+  image_url: string | null;
+  vertical: string | null;
+  display_order: number;
+};
+
+export type CatalogCategory = { id: number; name: string; vertical?: string | null };
 
 export type QuoteRequestItem = { product_id: number; quantity: number };
 
@@ -27,11 +43,18 @@ export type QuoteRequestPayload = {
   items: QuoteRequestItem[];
 };
 
-export async function fetchCatalog(params: { category_id?: number; q?: string; page?: number }) {
+export async function fetchCatalog(params: { vertical?: string; category_id?: number; q?: string; page?: number }) {
   const { data } = await api.get<PaginatedResponse<PublicProduct>>("/public/catalog/products", {
     params: { ...params, per_page: 12 },
   });
   return data;
+}
+
+export async function fetchPublicServices(params?: { vertical?: string; category_id?: number; q?: string }) {
+  const { data } = await api.get<{ data: PublicService[] }>("/public/catalog/services", {
+    params,
+  });
+  return data.data;
 }
 
 export async function fetchCatalogProduct(id: string | number) {
@@ -39,8 +62,8 @@ export async function fetchCatalogProduct(id: string | number) {
   return data.data;
 }
 
-export async function fetchCatalogCategories() {
-  const { data } = await api.get<CatalogCategory[]>("/public/catalog/categories");
+export async function fetchCatalogCategories(params?: { vertical?: string }) {
+  const { data } = await api.get<CatalogCategory[]>("/public/catalog/categories", { params });
   return data;
 }
 

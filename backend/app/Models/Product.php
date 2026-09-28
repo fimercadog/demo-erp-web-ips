@@ -17,16 +17,18 @@ class Product extends Model
     // ProductController::image() tras subir el archivo por el endpoint de upload.
     // Asi un POST/PUT/PATCH no puede meter una URL externa arbitraria en el catalogo.
     protected $fillable = [
-        'company_id', 'client_uuid', 'sku', 'name', 'description',
+        'company_id', 'client_uuid', 'vertical', 'sku', 'name', 'description',
         'category_id', 'brand_id', 'unit_id',
-        'unit_price', 'cost_price', 'reorder_level', 'status', 'is_public',
+        'unit_price', 'compare_price', 'cost_price', 'reorder_level', 'status', 'is_public', 'display_order',
         'requires_batch', 'requires_expiration',
     ];
 
     protected $casts = [
         'unit_price' => 'decimal:2',
+        'compare_price' => 'decimal:2',
         'cost_price' => 'decimal:2',
         'is_public' => 'boolean',
+        'display_order' => 'integer',
         'requires_batch' => 'boolean',
         'requires_expiration' => 'boolean',
     ];

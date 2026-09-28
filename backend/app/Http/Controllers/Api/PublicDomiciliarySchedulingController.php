@@ -62,6 +62,19 @@ class PublicDomiciliarySchedulingController extends Controller
         $validated['company_id'] = $company->id;
         $validated['city'] = $validated['city'] ?? $company->city;
 
+        \App\Models\Lead::firstOrCreate(
+            ['company_id' => $company->id, 'email' => strtolower($validated['email'])],
+            [
+                'vertical' => 'sueroterapia',
+                'name' => $validated['client_name'],
+                'phone' => $validated['phone'],
+                'interested_service_id' => $validated['service_id'],
+                'message' => 'Residencia: '.$validated['address'].' ('.$validated['neighborhood'].')',
+                'source' => 'domiciliary_booking',
+                'status' => 'new',
+            ]
+        );
+
         $appointment = $this->domiciliaryService->bookDomiciliary($validated);
 
         return response()->json([

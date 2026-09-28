@@ -8,7 +8,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Category extends Model
 {
-    protected $fillable = ['company_id', 'name', 'status'];
+    protected $fillable = ['company_id', 'vertical', 'name', 'status', 'is_public', 'display_order'];
+
+    protected $casts = [
+        'is_public' => 'boolean',
+        'display_order' => 'integer',
+    ];
 
     public function company(): BelongsTo
     {
@@ -18,5 +23,10 @@ class Category extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function services(): HasMany
+    {
+        return $this->hasMany(Service::class);
     }
 }

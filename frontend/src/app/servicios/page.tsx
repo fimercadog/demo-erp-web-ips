@@ -37,7 +37,7 @@ export default function ServiciosPage() {
 
       <Section className="pt-0">
         <CircularPhotoAbout
-          image="/gallery/pet-10.jpg"
+          image="/gallery/ips/urgencias_prioritaria.jpg"
           imageAlt="Atención médica prioritaria"
           eyebrow="Atención Prioritaria"
           title="Prioridad inmediata cuando requiere valoración urgente"
@@ -65,7 +65,7 @@ export default function ServiciosPage() {
 
       <PhotoOverlayLinks
         title="Todos los servicios de un vistazo"
-        image="/gallery/paw-procedure.jpg"
+        image="/gallery/ips/consulta_medica.jpg"
         imageAlt="Procedimiento médico ambulatorio"
         items={services.map((s) => ({ label: s.title, href: `/servicios/${s.slug}` }))}
       />

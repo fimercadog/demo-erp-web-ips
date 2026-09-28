@@ -84,6 +84,18 @@ class PublicDentalSchedulingController extends Controller
                 ]
             );
 
+            \App\Models\Lead::firstOrCreate(
+                ['company_id' => $companyId, 'email' => strtolower($validated['client_email'])],
+                [
+                    'vertical' => 'odontologia',
+                    'name' => $validated['client_name'],
+                    'phone' => $validated['client_phone'],
+                    'interested_service_id' => $service->id,
+                    'source' => 'dental_booking',
+                    'status' => 'new',
+                ]
+            );
+
             $appointment = Appointment::create([
                 'company_id' => $companyId,
                 'patient_id' => $patient->id,

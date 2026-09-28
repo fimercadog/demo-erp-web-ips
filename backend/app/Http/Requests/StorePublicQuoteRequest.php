@@ -23,13 +23,21 @@ class StorePublicQuoteRequest extends ApiFormRequest
             'email' => ['required', 'email', 'max:150'],
             'phone' => ['nullable', 'string', 'max:50'],
             'company_name' => ['nullable', 'string', 'max:150'],
+            'vertical' => ['nullable', 'string', 'max:50'],
             'message' => ['nullable', 'string', 'max:2000'],
             // Ley 1581: sin consentimiento no se guardan datos de contacto.
             'consent' => ['accepted'],
             'items' => ['required', 'array', 'min:1', 'max:100'],
             'items.*.product_id' => [
-                'required', 'integer', 'distinct',
+                'nullable', 'integer', 'distinct',
                 Rule::exists('products', 'id')
+                    ->where('company_id', $companyId)
+                    ->where('is_public', true)
+                    ->where('status', 'active'),
+            ],
+            'items.*.service_id' => [
+                'nullable', 'integer',
+                Rule::exists('services', 'id')
                     ->where('company_id', $companyId)
                     ->where('is_public', true)
                     ->where('status', 'active'),

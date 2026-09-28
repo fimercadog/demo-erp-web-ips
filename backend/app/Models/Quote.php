@@ -9,13 +9,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Quote extends Model
 {
     protected $fillable = [
-        'company_id', 'client_id', 'deal_id', 'converted_order_id',
-        'title', 'status', 'source', 'valid_until', 'notes', 'total',
+        'company_id', 'client_id', 'lead_id', 'deal_id', 'converted_order_id',
+        'vertical', 'title', 'status', 'source', 'valid_until', 'notes',
+        'subtotal', 'tax_amount', 'discount_amount', 'total', 'pdf_path', 'sent_at', 'sent_to',
     ];
 
     protected $casts = [
         'valid_until' => 'date',
+        'subtotal' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
         'total' => 'decimal:2',
+        'sent_at' => 'datetime',
     ];
 
     public function company(): BelongsTo
@@ -26,6 +31,11 @@ class Quote extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function lead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class);
     }
 
     public function deal(): BelongsTo
